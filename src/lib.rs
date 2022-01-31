@@ -1,8 +1,5 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
+mod error;
+mod pathext;
+
+pub use self::error::{BadPath, Reason, Result};
+pub use self::pathext::PathExt;
