@@ -110,7 +110,7 @@ invalid utf8
     )]
     fn pe_file_name_str(&self) -> Result<&str> {
         let os = self.pe_file_name()?;
-        self.o2r(os.to_str(), "invalid utf8")
+        o2r(self, os.to_str(), "invalid utf8")
     }
 
     /// Strip a given prefix from a path, or if the path does not begin with the prefix, describe
@@ -190,7 +190,7 @@ invalid utf8
     )]
     fn pe_file_stem_str(&self) -> Result<&str> {
         let os = self.pe_file_stem()?;
-        self.o2r(os.to_str(), "invalid utf8")
+        o2r(self, os.to_str(), "invalid utf8")
     }
 
     /// Return the extension [std::ffi::OsStr] or else describe there is no extension.
@@ -244,7 +244,7 @@ invalid utf8
     )]
     fn pe_extension_str(&self) -> Result<&str> {
         let os = self.pe_extension()?;
-        self.o2r(os.to_str(), "invalid utf8")
+        o2r(self, os.to_str(), "invalid utf8")
     }
 
     /// Return the path's [std::fs::Metadata] or include the path in the error description.
@@ -351,25 +351,19 @@ invalid utf8
     /// ".trim());
     /// ```
     fn pe_read_dir(&self) -> Result<ReadDir>;
-
-    #[doc(hidden)]
-    fn o2r<T>(&self, opt: Option<T>, issue: &str) -> Result<T> {
-        opt.ok_or_else(|| Error::new(Other, issue.to_string()))
-            .annotate_err_into("path", || self.as_ref().display())
-    }
 }
 
 impl PathExt for Path {
     fn pe_to_str(&self) -> Result<&str> {
-        self.o2r(self.to_str(), "invalid utf8")
+        o2r(self, self.to_str(), "invalid utf8")
     }
 
     fn pe_parent(&self) -> Result<&Path> {
-        self.o2r(self.parent(), "no parent path")
+        o2r(self, self.parent(), "no parent path")
     }
 
     fn pe_file_name(&self) -> Result<&OsStr> {
-        self.o2r(self.file_name(), "no file name")
+        o2r(self, self.file_name(), "no file name")
     }
 
     fn pe_strip_prefix<P>(&self, base: P) -> Result<&Path>
@@ -384,11 +378,11 @@ impl PathExt for Path {
     }
 
     fn pe_file_stem(&self) -> Result<&OsStr> {
-        self.o2r(self.file_stem(), "no file name")
+        o2r(self, self.file_stem(), "no file name")
     }
 
     fn pe_extension(&self) -> Result<&OsStr> {
-        self.o2r(self.extension(), "no file name or no extension")
+        o2r(self, self.extension(), "no file name or no extension")
     }
 
     fn pe_metadata(&self) -> Result<Metadata> {
@@ -413,4 +407,12 @@ impl PathExt for Path {
     fn pe_read_dir(&self) -> Result<ReadDir> {
         self.read_dir().annotate_err_into("path", || self.display())
     }
+}
+
+fn o2r<P, T>(p: P, opt: Option<T>, issue: &str) -> Result<T>
+where
+    P: AsRef<Path>,
+{
+    opt.ok_or_else(|| Error::new(Other, issue.to_string()))
+        .annotate_err_into("path", || p.as_ref().display())
 }
