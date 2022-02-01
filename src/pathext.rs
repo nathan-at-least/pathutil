@@ -4,10 +4,16 @@ use std::fs::{Metadata, ReadDir};
 use std::io::{Error, ErrorKind::Other, Result};
 use std::path::{Path, PathBuf};
 
-/// A trait to extend [std::path::Path] with methods (all prefixed with `pe_`) which include the
-/// path in the [std::io::Error] description. Additionally [std::path::Path] methods which return
-/// `Option` now return [std::io::Result] with [std::io::ErrorKind::Other] and a useful description
-/// of the issue.
+/// A trait to extend [std::path::Path] with methods with several useful features.
+///
+/// - All [Path](std::path::Path) methods which return either `Option<T>` or `std::io::Result<T>`
+/// are extended by [PathExt] with a `pe_…` prefix for disambiguation.
+/// - All [PathExt] method errors are [std::io::Error] with included diagnostic information. This
+/// always includes the path itself, and sometimes additional information, as the
+/// [PathExt::pe_strip_prefix] example demonstrates.
+/// - All [PathExt] methods which return `&OsStr` also have an associated `pe_…_str` method which
+/// returns `&str` and performs utf8 conversion, or describing the utf8 conversion failure on
+/// error. An example is [PathExt::pe_file_name_str].
 pub trait PathExt: AsRef<Path> {
     /// Returns the path as a utf8 `&str`, or the error explains "invalid utf8".
     ///
