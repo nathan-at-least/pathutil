@@ -1,5 +1,6 @@
 [package]
 name = "pathutil"
+description = "Extend std::path::Path with errors that describe the offending path."
 version = "0.1.0"
 license = "MIT"
 repository = "https://github.com/nathan-at-least/pathutil"
