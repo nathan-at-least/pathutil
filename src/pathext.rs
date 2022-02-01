@@ -4,10 +4,10 @@ use std::fs::{Metadata, ReadDir};
 use std::io::{Error, ErrorKind::Other, Result};
 use std::path::{Path, PathBuf};
 
-/// A trait to extend [std::path::Path] with methods (all prefixed with `pe_`) that return `Results` rather than `Option` in
-/// a variety of cases.
-///
-/// User code can manage [BadPath] errors directly or can convert to [std::io::Error] via [From].
+/// A trait to extend [std::path::Path] with methods (all prefixed with `pe_`) which include the
+/// path in the [std::io::Error] description. Additionally [std::path::Path] methods which return
+/// `Option` now return [std::io::Result] with [std::io::ErrorKind::Other] and a useful description
+/// of the issue.
 pub trait PathExt: AsRef<Path> {
     fn pe_to_str(&self) -> Result<&str>;
     fn pe_parent(&self) -> Result<&Path>;
