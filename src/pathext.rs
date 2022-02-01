@@ -1,7 +1,8 @@
 use error_annotation::AnnotateResult;
 use std::ffi::OsStr;
+use std::fs::{Metadata, ReadDir};
 use std::io::{Error, ErrorKind::Other, Result};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// A trait to extend [std::path::Path] with methods (all prefixed with `pe_`) that return `Results` rather than `Option` in
 /// a variety of cases.
@@ -40,6 +41,12 @@ pub trait PathExt: AsRef<Path> {
         opt.ok_or_else(|| Error::new(Other, issue.to_string()))
             .annotate_err_into("path", || self.as_ref().display())
     }
+
+    fn pe_metadata(&self) -> Result<Metadata>;
+    fn pe_symlink_metadata(&self) -> Result<Metadata>;
+    fn pe_canonicalize(&self) -> Result<PathBuf>;
+    fn pe_read_link(&self) -> Result<PathBuf>;
+    fn pe_read_dir(&self) -> Result<ReadDir>;
 }
 
 impl PathExt for Path {
@@ -72,5 +79,28 @@ impl PathExt for Path {
 
     fn pe_extension(&self) -> Result<&OsStr> {
         self.o2r(self.extension(), "no filename or no extension")
+    }
+
+    fn pe_metadata(&self) -> Result<Metadata> {
+        self.metadata().annotate_err_into("path", || self.display())
+    }
+
+    fn pe_symlink_metadata(&self) -> Result<Metadata> {
+        self.symlink_metadata()
+            .annotate_err_into("path", || self.display())
+    }
+
+    fn pe_canonicalize(&self) -> Result<PathBuf> {
+        self.canonicalize()
+            .annotate_err_into("path", || self.display())
+    }
+
+    fn pe_read_link(&self) -> Result<PathBuf> {
+        self.read_link()
+            .annotate_err_into("path", || self.display())
+    }
+
+    fn pe_read_dir(&self) -> Result<ReadDir> {
+        self.read_dir().annotate_err_into("path", || self.display())
     }
 }
