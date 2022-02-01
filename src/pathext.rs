@@ -14,28 +14,30 @@ pub trait PathExt: AsRef<Path> {
 
     fn pe_file_name_str(&self) -> Result<&str> {
         let os = self.pe_file_name()?;
-        os.to_str()
-            .ok_or(Reason::InvalidUtf8)
-            .annotate_err("path", || self.as_ref())
-            .map_err(BadPath)
+        self.o2r(os.to_str(), Reason::InvalidUtf8)
     }
+
+    fn pe_strip_prefix<P>(&self, base: P) -> Result<&Path>
+    where
+        P: AsRef<Path>;
 
     fn pe_file_stem(&self) -> Result<&OsStr>;
 
     fn pe_file_stem_str(&self) -> Result<&str> {
         let os = self.pe_file_stem()?;
-        os.to_str()
-            .ok_or(Reason::InvalidUtf8)
-            .annotate_err("path", || self.as_ref())
-            .map_err(BadPath)
+        self.o2r(os.to_str(), Reason::InvalidUtf8)
     }
 
     fn pe_extension(&self) -> Result<&OsStr>;
 
     fn pe_extension_str(&self) -> Result<&str> {
         let os = self.pe_extension()?;
-        os.to_str()
-            .ok_or(Reason::InvalidUtf8)
+        self.o2r(os.to_str(), Reason::InvalidUtf8)
+    }
+
+    #[doc(hidden)]
+    fn o2r<T>(&self, opt: Option<T>, reason: Reason) -> Result<T> {
+        opt.ok_or(reason)
             .annotate_err("path", || self.as_ref())
             .map_err(BadPath)
     }
@@ -43,42 +45,32 @@ pub trait PathExt: AsRef<Path> {
 
 impl PathExt for Path {
     fn pe_to_str(&self) -> Result<&str> {
-        use crate::Reason::InvalidUtf8;
-        self.to_str()
-            .ok_or(InvalidUtf8)
-            .annotate_err("path", || self)
-            .map_err(BadPath)
+        self.o2r(self.to_str(), Reason::InvalidUtf8)
     }
 
     fn pe_parent(&self) -> Result<&Path> {
-        use crate::Reason::NoParent;
-        self.parent()
-            .ok_or(NoParent)
-            .annotate_err("path", || self)
-            .map_err(BadPath)
+        self.o2r(self.parent(), Reason::NoParent)
     }
 
     fn pe_file_name(&self) -> Result<&OsStr> {
-        use crate::Reason::NoFilename;
-        self.file_name()
-            .ok_or(NoFilename)
+        self.o2r(self.file_name(), Reason::NoFilename)
+    }
+
+    fn pe_strip_prefix<P>(&self, base: P) -> Result<&Path>
+    where
+        P: AsRef<Path>,
+    {
+        self.strip_prefix(base)
+            .map_err(|_| Reason::PrefixMismatch)
             .annotate_err("path", || self)
             .map_err(BadPath)
     }
 
     fn pe_file_stem(&self) -> Result<&OsStr> {
-        use crate::Reason::NoFilename;
-        self.file_stem()
-            .ok_or(NoFilename)
-            .annotate_err("path", || self)
-            .map_err(BadPath)
+        self.o2r(self.file_stem(), Reason::NoFilename)
     }
 
     fn pe_extension(&self) -> Result<&OsStr> {
-        use crate::Reason::NoFilenameOrNoExtension;
-        self.extension()
-            .ok_or(NoFilenameOrNoExtension)
-            .annotate_err("path", || self)
-            .map_err(BadPath)
+        self.o2r(self.extension(), Reason::NoFilenameOrNoExtension)
     }
 }

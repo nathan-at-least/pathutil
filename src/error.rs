@@ -22,6 +22,7 @@ pub enum Reason {
     NoParent,
     NoFilename,
     NoFilenameOrNoExtension,
+    PrefixMismatch,
 }
 
 impl From<Reason> for Error {
@@ -35,6 +36,7 @@ impl From<Reason> for Error {
                 NoParent => "no parent path",
                 NoFilename => "no filename",
                 NoFilenameOrNoExtension => "no filename or else no extension",
+                PrefixMismatch => "prefix not found",
             }),
         )
     }
