@@ -1,4 +1,5 @@
 use error_annotation::AnnotateResult;
+use indoc::indoc;
 use std::ffi::OsStr;
 use std::fs::{Metadata, ReadDir};
 use std::io::{Error, ErrorKind::Other, Result};
@@ -19,28 +20,28 @@ pub trait PathExt: AsRef<Path> {
     ///
     #[cfg_attr(
         target_os = "linux",
-        doc = r#"
-# Example
+        doc = indoc! {r#"
+            # Example
 
-```
-use pathutil::PathExt;
-use std::path::Path;
-use std::ffi::OsStr;
-use std::os::unix::ffi::OsStrExt;
+            ```
+            use pathutil::PathExt;
+            use std::path::Path;
+            use std::ffi::OsStr;
+            use std::os::unix::ffi::OsStrExt;
 
-let p = Path::new(OsStr::from_bytes(&[255u8]));
-let res = p.pe_to_str();
-assert!(res.is_err());
+            let p = Path::new(OsStr::from_bytes(&[255u8]));
+            let res = p.pe_to_str();
+            assert!(res.is_err());
 
-let errstr = res.err().unwrap().to_string();
-assert_eq!(&errstr, "
+            let errstr = res.err().unwrap().to_string();
+            assert_eq!(&errstr, "
 
-invalid utf8
--with path: �
+            invalid utf8
+            -with path: �
 
-".trim());
-```
-"#
+            ".trim());
+            ```
+        "#}
     )]
     fn pe_to_str(&self) -> Result<&str>;
 
@@ -91,28 +92,28 @@ invalid utf8
     ///
     #[cfg_attr(
         target_os = "linux",
-        doc = r#"
-# Example
+        doc = indoc! {r#"
+            # Example
 
-```
-use pathutil::PathExt;
-use std::path::Path;
-use std::ffi::OsStr;
-use std::os::unix::ffi::OsStrExt;
+            ```
+            use pathutil::PathExt;
+            use std::path::Path;
+            use std::ffi::OsStr;
+            use std::os::unix::ffi::OsStrExt;
 
-let p = Path::new(OsStr::from_bytes(&[255u8]));
-let res = p.pe_file_name_str();
-assert!(res.is_err());
+            let p = Path::new(OsStr::from_bytes(&[255u8]));
+            let res = p.pe_file_name_str();
+            assert!(res.is_err());
 
-let errstr = res.err().unwrap().to_string();
-assert_eq!(&errstr, "
+            let errstr = res.err().unwrap().to_string();
+            assert_eq!(&errstr, "
 
-invalid utf8
--with path: �
+            invalid utf8
+            -with path: �
 
-".trim());
-```
-"#
+            ".trim());
+            ```
+        "#}
     )]
     fn pe_file_name_str(&self) -> Result<&str> {
         let os = self.pe_file_name()?;
@@ -171,28 +172,28 @@ invalid utf8
     ///
     #[cfg_attr(
         target_os = "linux",
-        doc = r#"
-# Example
+        doc = indoc! {r#"
+            # Example
 
-```
-use pathutil::PathExt;
-use std::path::Path;
-use std::ffi::OsStr;
-use std::os::unix::ffi::OsStrExt;
+            ```
+            use pathutil::PathExt;
+            use std::path::Path;
+            use std::ffi::OsStr;
+            use std::os::unix::ffi::OsStrExt;
 
-let p = Path::new(OsStr::from_bytes(&[255u8]));
-let res = p.pe_file_stem_str();
-assert!(res.is_err());
+            let p = Path::new(OsStr::from_bytes(&[255u8]));
+            let res = p.pe_file_stem_str();
+            assert!(res.is_err());
 
-let errstr = res.err().unwrap().to_string();
-assert_eq!(&errstr, "
+            let errstr = res.err().unwrap().to_string();
+            assert_eq!(&errstr, "
 
-invalid utf8
--with path: �
+            invalid utf8
+            -with path: �
 
-".trim());
-```
-"#
+            ".trim());
+            ```
+        "#}
     )]
     fn pe_file_stem_str(&self) -> Result<&str> {
         let os = self.pe_file_stem()?;
@@ -225,28 +226,28 @@ invalid utf8
     ///
     #[cfg_attr(
         target_os = "linux",
-        doc = r#"
-# Example
+        doc = indoc! {r#"
+            # Example
 
-```
-use pathutil::PathExt;
-use std::path::Path;
-use std::ffi::OsStr;
-use std::os::unix::ffi::OsStrExt;
+            ```
+            use pathutil::PathExt;
+            use std::path::Path;
+            use std::ffi::OsStr;
+            use std::os::unix::ffi::OsStrExt;
 
-let p = Path::new(OsStr::from_bytes(&[b'f', b'.', 255u8]));
-let res = p.pe_extension_str();
-assert!(res.is_err());
+            let p = Path::new(OsStr::from_bytes(&[b'f', b'.', 255u8]));
+            let res = p.pe_extension_str();
+            assert!(res.is_err());
 
-let errstr = res.err().unwrap().to_string();
-assert_eq!(&errstr, "
+            let errstr = res.err().unwrap().to_string();
+            assert_eq!(&errstr, "
 
-invalid utf8
--with path: f.�
+            invalid utf8
+            -with path: f.�
 
-".trim());
-```
-"#
+            ".trim());
+            ```
+        "#}
     )]
     fn pe_extension_str(&self) -> Result<&str> {
         let os = self.pe_extension()?;
