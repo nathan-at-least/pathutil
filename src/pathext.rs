@@ -1,11 +1,12 @@
+use crate::PathMetadata;
 use error_annotation::AnnotateResult;
 use indoc::indoc;
 use std::ffi::OsStr;
-use std::fs::{Metadata, ReadDir};
+use std::fs::ReadDir;
 use std::io::{Error, ErrorKind::Other, Result};
 use std::path::{Path, PathBuf};
 
-/// A trait to extend [std::path::Path] with methods with several useful features.
+/// A trait to extend [std::path::Path] with error and [std::fs] operation improvements.
 ///
 /// - All [Path](std::path::Path) methods which return either `Option<T>` or `std::io::Result<T>`
 /// are extended by [PathExt] with a `pe_…` prefix for disambiguation.
@@ -254,7 +255,7 @@ pub trait PathExt: AsRef<Path> {
         o2r(self, os.to_str(), "invalid utf8")
     }
 
-    /// Return the path's [std::fs::Metadata] or include the path in the error description.
+    /// Return the path's [PathMetadata] or include the path in the error description.
     ///
     /// # Example
     ///
@@ -273,9 +274,9 @@ pub trait PathExt: AsRef<Path> {
     ///
     /// ".trim());
     /// ```
-    fn pe_metadata(&self) -> Result<Metadata>;
+    fn pe_metadata(&self) -> Result<PathMetadata>;
 
-    /// Return the symlink's [std::fs::Metadata] or include the path in the error description.
+    /// Return the symlink's [PathMetadata] or include the path in the error description.
     ///
     /// # Example
     ///
@@ -294,7 +295,7 @@ pub trait PathExt: AsRef<Path> {
     ///
     /// ".trim());
     /// ```
-    fn pe_symlink_metadata(&self) -> Result<Metadata>;
+    fn pe_symlink_metadata(&self) -> Result<PathMetadata>;
 
     /// Return the canonicalized path or else include the path in the error description.
     ///
@@ -392,13 +393,16 @@ impl PathExt for Path {
         o2r(self, self.extension(), "no file name or no extension")
     }
 
-    fn pe_metadata(&self) -> Result<Metadata> {
-        self.metadata().annotate_err_into("path", || self.display())
+    fn pe_metadata(&self) -> Result<PathMetadata> {
+        self.metadata()
+            .annotate_err_into("path", || self.display())
+            .map(|md| PathMetadata::new(self, md))
     }
 
-    fn pe_symlink_metadata(&self) -> Result<Metadata> {
+    fn pe_symlink_metadata(&self) -> Result<PathMetadata> {
         self.symlink_metadata()
             .annotate_err_into("path", || self.display())
+            .map(|md| PathMetadata::new(self, md))
     }
 
     fn pe_canonicalize(&self) -> Result<PathBuf> {
