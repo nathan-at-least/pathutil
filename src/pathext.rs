@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 
 /// A trait to extend [std::path::Path] with error and [std::fs] operation improvements.
 ///
-/// - All [Path](std::path::Path) methods which return either `Option<T>` or `std::io::Result<T>`
+/// - All [std::path::Path] methods which return either `Option<T>` or `std::io::Result<T>`
 /// are extended by [PathExt] with a `pe_…` prefix for disambiguation.
 /// - All [PathExt] method errors are [std::io::Error] with included diagnostic information. This
 /// always includes the path itself, and sometimes additional information, as the
