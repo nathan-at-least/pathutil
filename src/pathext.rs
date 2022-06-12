@@ -2,7 +2,7 @@ use crate::privtrait::PathExtPriv;
 use crate::PathMetadata;
 use indoc::indoc;
 use std::ffi::OsStr;
-use std::fs::ReadDir;
+use std::fs::{DirEntry, ReadDir};
 use std::io::Result;
 use std::path::{Path, PathBuf};
 
@@ -339,7 +339,7 @@ pub trait PathExt: AsRef<Path> + PathExtPriv {
     /// ```
     fn pe_read_link(&self) -> Result<PathBuf>;
 
-    /// Read the directory at path or else include the path in the error description.
+    /// Start reading the directory at path or else include the path in the error description.
     ///
     /// # Example
     ///
@@ -359,4 +359,9 @@ pub trait PathExt: AsRef<Path> + PathExtPriv {
     /// ".trim());
     /// ```
     fn pe_read_dir(&self) -> Result<ReadDir>;
+
+    /// Read the directory, collecting the entries, or return an error.
+    fn pe_read_dir_entries(&self) -> Result<Vec<DirEntry>> {
+        self.pe_read_dir()?.collect()
+    }
 }
