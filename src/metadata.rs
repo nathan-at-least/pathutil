@@ -99,6 +99,26 @@ impl<'a> PathMetadata<'a> {
     }
 
     /// Return an error if the filetype does not match the expectation.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use pathutil::{PathExt, FileTypeEnum::File};
+    ///
+    /// let pb = std::path::Path::new("/");
+    /// let md = pb.pe_metadata().unwrap();
+    ///
+    /// let res = md.require_file_type(File);
+    /// assert!(res.is_err());
+    ///
+    /// let errstr = res.err().unwrap().to_string();
+    /// assert_eq!(&errstr, "
+    ///
+    /// found Dir, expected File
+    /// -with path: /
+    ///
+    /// ".trim());
+    /// ```
     pub fn require_file_type<T>(&self, expected: T) -> Result<()>
     where
         FileTypeEnum: From<T>,
@@ -109,6 +129,7 @@ impl<'a> PathMetadata<'a> {
             Ok(())
         } else {
             Err(other_error_fmt!("found {:?}, expected {:?}", found, expfte))
+                .annotate_err_into("path", || self.path.display())
         }
     }
 }
