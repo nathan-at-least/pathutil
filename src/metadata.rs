@@ -1,3 +1,4 @@
+use crate::FileTypeEnum;
 use error_annotation::AnnotateResult;
 use std::borrow::Cow;
 use std::fs::{FileType, Metadata, Permissions};
@@ -95,5 +96,19 @@ impl<'a> PathMetadata<'a> {
         self.md
             .created()
             .annotate_err_into("path", || self.path.display())
+    }
+
+    /// Return an error if the filetype does not match the expectation.
+    pub fn require_file_type<T>(&self, expected: T) -> Result<()>
+    where
+        FileTypeEnum: From<T>,
+    {
+        let expfte: FileTypeEnum = expected.into();
+        let found: FileTypeEnum = self.file_type().into();
+        if found == expfte {
+            Ok(())
+        } else {
+            Err(other_error_fmt!("found {:?}, expected {:?}", found, expfte))
+        }
     }
 }
