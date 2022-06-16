@@ -1,9 +1,8 @@
 use crate::privtrait::PathExtPriv;
-use crate::{PathExt, PathMetadata};
+use crate::{PathExt, PathMetadata, PathReadDir};
 use error_annotation::AnnotateResult;
 use std::ffi::OsStr;
-use std::fs::ReadDir;
-use std::io::{Error, ErrorKind::Other, Result};
+use std::io::Result;
 use std::path::{Path, PathBuf};
 
 impl PathExtPriv for Path {
@@ -31,7 +30,7 @@ impl PathExt for Path {
     {
         let bref = base.as_ref();
         self.strip_prefix(bref)
-            .map_err(|_| Error::new(Other, "prefix mismatch"))
+            .map_err(|_| other_error_fmt!("prefix mismatch"))
             .annotate_err_into("prefix", || bref.display())
             .annotate_err_into("path", || self.display())
     }
@@ -66,7 +65,9 @@ impl PathExt for Path {
             .annotate_err_into("path", || self.display())
     }
 
-    fn pe_read_dir(&self) -> Result<ReadDir> {
-        self.read_dir().annotate_err_into("path", || self.display())
+    fn pe_read_dir(&self) -> Result<PathReadDir> {
+        self.read_dir()
+            .map(|rd| PathReadDir::new(self, rd))
+            .annotate_err_into("path", || self.display())
     }
 }

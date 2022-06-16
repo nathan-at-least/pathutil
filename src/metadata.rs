@@ -1,27 +1,35 @@
+use crate::FileTypeEnum;
 use error_annotation::AnnotateResult;
+use std::borrow::Cow;
 use std::fs::{FileType, Metadata, Permissions};
 use std::io::Result;
 use std::path::Path;
 use std::time::SystemTime;
 
-/// Extend [Metadata] with the originating [std::path::Path] for improved errors.
+/// Extend [Metadata] with the originating [Path] for improved error messages.
 ///
 /// This enables [std::io::Error] results to be annotated with the offending path.
 #[derive(Debug)]
 pub struct PathMetadata<'a> {
-    path: &'a Path,
+    path: Cow<'a, Path>,
     md: Metadata,
 }
 
 impl<'a> PathMetadata<'a> {
     /// Create a new `PathMetadata`.
-    pub fn new(path: &'a Path, md: Metadata) -> Self {
+    pub fn new<P>(path: P, md: Metadata) -> Self
+    where
+        Cow<'a, Path>: From<P>,
+    {
+        let path = Cow::from(path);
         PathMetadata { path, md }
     }
 
-    /// Access associated [std::path::Path].
+    /// Access associated [Path].
     pub fn path(&'a self) -> &'a Path {
-        self.path
+        use std::borrow::Borrow;
+
+        self.path.borrow()
     }
 
     /// Access associated [Metadata].
@@ -88,5 +96,40 @@ impl<'a> PathMetadata<'a> {
         self.md
             .created()
             .annotate_err_into("path", || self.path.display())
+    }
+
+    /// Return an error if the filetype does not match the expectation.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use pathutil::{PathExt, FileTypeEnum::File};
+    ///
+    /// let pb = std::path::Path::new("/");
+    /// let md = pb.pe_metadata().unwrap();
+    ///
+    /// let res = md.require_file_type(File);
+    /// assert!(res.is_err());
+    ///
+    /// let errstr = res.err().unwrap().to_string();
+    /// assert_eq!(&errstr, "
+    ///
+    /// found Dir, expected File
+    /// -with path: /
+    ///
+    /// ".trim());
+    /// ```
+    pub fn require_file_type<T>(&self, expected: T) -> Result<()>
+    where
+        FileTypeEnum: From<T>,
+    {
+        let expfte: FileTypeEnum = expected.into();
+        let found: FileTypeEnum = self.file_type().into();
+        if found == expfte {
+            Ok(())
+        } else {
+            Err(other_error_fmt!("found {:?}, expected {:?}", found, expfte))
+                .annotate_err_into("path", || self.path.display())
+        }
     }
 }
