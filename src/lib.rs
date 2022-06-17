@@ -8,8 +8,6 @@ mod direntry;
 mod filetype;
 mod metadata;
 mod pathext;
-mod pathimpl;
-mod privtrait;
 mod readdir;
 
 pub use self::direntry::PathDirEntry;
