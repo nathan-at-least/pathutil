@@ -2,6 +2,7 @@ use crate::{other_error, PathDirEntry, PathMetadata, PathReadDir};
 use error_annotation::AnnotateResult;
 use indoc::indoc;
 use std::ffi::OsStr;
+use std::fs::Permissions;
 use std::io::Result;
 use std::path::{Path, PathBuf};
 
@@ -413,11 +414,89 @@ pub trait PathExt: AsRef<Path> {
         self.pe_read_dir()?.collect()
     }
 
-    // Todo: other functions in `std::fs` in documentation order.
+    /// Copy to `to` destination.
+    fn pe_copy<P>(&self, to: P) -> Result<u64>
+    where
+        P: AsRef<Path>,
+    {
+        let topath = to.as_ref();
+
+        std::fs::copy(self, topath)
+            .annotate_err_into("from", || self.as_ref().display())
+            .annotate_err_into("to", || topath.display())
+    }
+
+    /// Creates a new, empty directory at the provided path.
+    fn pe_create_dir<P>(&self) -> Result<()> {
+        std::fs::create_dir(self).annotate_err_into("path", || self.as_ref().display())
+    }
+
+    /// Recursively create a directory and all of its parent components if they are missing.
+    fn pe_create_dir_all<P>(&self) -> Result<()> {
+        std::fs::create_dir_all(self).annotate_err_into("path", || self.as_ref().display())
+    }
+
+    /// Creates a new hard link on the filesystem.
+    fn pe_hard_link<P>(&self, link: P) -> Result<()>
+    where
+        P: AsRef<Path>,
+    {
+        let linkpath = link.as_ref();
+        std::fs::hard_link(self, linkpath)
+            .annotate_err_into("original", || self.as_ref().display())
+            .annotate_err_into("link", || linkpath.display())
+    }
+
+    /// Read the entire contents of a file into a bytes vector.
+    fn pe_read(&self) -> Result<Vec<u8>> {
+        std::fs::read(self).annotate_err_into("path", || self.as_ref().display())
+    }
+
     /// Read to a string.
     fn pe_read_to_string(&self) -> Result<String> {
-        let path = self.as_ref();
-        std::fs::read_to_string(path).annotate_err_into("path", || path.display())
+        std::fs::read_to_string(self).annotate_err_into("path", || self.as_ref().display())
+    }
+
+    /// Removes an empty directory.
+    fn pe_remove_dir(&self) -> Result<()> {
+        std::fs::remove_dir(self).annotate_err_into("path", || self.as_ref().display())
+    }
+
+    /// Removes a directory at this path, after removing all its contents. Use carefully!
+    fn pe_remove_dir_all(&self) -> Result<()> {
+        std::fs::remove_dir_all(self).annotate_err_into("path", || self.as_ref().display())
+    }
+
+    /// Removes a file from the filesystem.
+    fn pe_remove_file(&self) -> Result<()> {
+        std::fs::remove_file(self).annotate_err_into("path", || self.as_ref().display())
+    }
+
+    /// Rename a file or directory to a new name, replacing the original file if `to` already exists.
+    fn pe_rename<P>(&self, to: P) -> Result<()>
+    where
+        P: AsRef<Path>,
+    {
+        let topath = to.as_ref();
+        std::fs::rename(self, topath)
+            .annotate_err_into("from", || self.as_ref().display())
+            .annotate_err_into("to", || topath.display())
+    }
+
+    /// Changes the permissions found on a file or a directory.
+    fn pe_set_permissions<P>(&self, perms: Permissions) -> Result<()> {
+        let permdesc = format!("{:?}", &perms);
+        std::fs::set_permissions(self, perms)
+            .annotate_err_into("path", || self.as_ref().display())
+            .annotate_err_into("permissions", || permdesc)
+    }
+
+    /// Write a slice as the entire contents of a file.
+    fn pe_write<C>(&self, contents: C) -> Result<()>
+    where
+        C: AsRef<[u8]>,
+    {
+        std::fs::write(self, contents).annotate_err_into("path", || self.as_ref().display())
     }
 }
 
