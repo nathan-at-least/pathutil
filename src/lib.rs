@@ -1,5 +1,4 @@
-//! Provides a [PathExt] trait and impl for [std::path::Path] where error descriptions include the
-//! offending path and other diagnostic information.
+#![doc = include_str!("../README.md")]
 
 #[macro_use]
 mod error;
